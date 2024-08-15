@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  username   String    @unique
+  name       String
+  email      String    @unique
+  password   String
+  image      String?
+  bio        String?
+  is_admin   Boolean?  @default(false)
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  articles   Article[]
+  comments   Comment[]
+
+  @@map("users")
+}
+
+model RevokedToken {
+  id         Int       @id @default(autoincrement())
+  token      String    @unique
+  user_id    Int
+  expires_at DateTime
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  @@map("revoked_tokens")
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+  articles    Article[]
+
+  @@map("categories")
+}
+
+model Article {
+  id          Int       @id @default(autoincrement())
+  title       String
+  content     String
+  image       String?
+  user_id     Int
+  user        User?     @relation(fields: [user_id], references: [id])
+  category_id Int?
+  category    Category? @relation(fields: [category_id], references: [id])
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+  comments    Comment[]
+
+  @@map("articles")
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  content    String
+  status     Boolean?  @default(false)
+  user_id    Int
+  user       User?     @relation(fields: [user_id], references: [id])
+  article_id Int
+  article    Article?  @relation(fields: [article_id], references: [id])
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  @@map("comments")
+}
